@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Flashcard App{% endblock %}</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+    }
+    .fade-in {
+      animation: fadeIn 0.5s ease-in;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body class="bg-gray-50 min-h-screen flex flex-col">
+  <header class="bg-gradient-to-r from-blue-600 to-blue-700 text-white py-6 shadow-lg">
+    <div class="container mx-auto px-4">
+      <div class="flex items-center justify-between">
+        <h1 class="text-2xl font-bold tracking-tight">Flashcard Study</h1>
+        <nav class="space-x-6">
+          <a href="{% url 'home' %}" class="text-white hover:text-blue-100 transition-colors duration-200 font-medium">Home</a>
+          <a href="{% url 'about' %}" class="text-white hover:text-blue-100 transition-colors duration-200 font-medium">About</a>
+        </nav>
+      </div>
+    </div>
+  </header>
+  <main class="container mx-auto py-10 px-4 flex-grow">
+    <div id="messages" class="mb-6 hidden transition-all duration-300"></div>
+    {% block content %}
+    {% endblock %}
+  </main>
+  <footer class="bg-gray-900 text-gray-300 py-6">
+    <div class="container mx-auto px-4 text-center">
+      <p class="text-sm">© 2025 Flashcard App. All rights reserved.</p>
+    </div>
+  </footer>
+  <script>
+    function showMessage(message, type = 'success') {
+      const messagesDiv = document.getElementById('messages');
+      messagesDiv.innerHTML = `
+        <div class="bg-${type === 'success' ? 'green' : 'red'}-100 border-l-4 border-${type === 'success' ? 'green' : 'red'}-500 text-${type === 'success' ? 'green' : 'red'}-700 px-4 py-3 rounded-lg shadow-md fade-in">
+          ${message}
+        </div>`;
+      messagesDiv.classList.remove('hidden');
+      setTimeout(() => messagesDiv.classList.add('hidden'), 3000);
+    }
+  </script>
+</body>
+</html>

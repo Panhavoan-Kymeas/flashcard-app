@@ -1,0 +1,303 @@
+{% extends 'flashcards/base.html' %}
+
+{% block title %}Flashcard App - Study {{ deck.name }}{% endblock %}
+
+{% block content %}
+<section class="max-w-6xl mx-auto">
+  <!-- Header Section -->
+  <div
+    class="bg-gradient-to-br from-indigo-600 to-purple-700 rounded-2xl p-8 mb-10 shadow-xl">
+    <div class="flex flex-col md:flex-row justify-between items-center">
+      <div class="text-white mb-6 md:mb-0">
+        <h2 class="text-3xl md:text-4xl font-bold mb-2">Study: {{ deck.name }}</h2>
+        <p class="text-indigo-100 max-w-md">Review your flashcards to boost your memory retention.</p>
+      </div>
+      <a href="{% url 'deck_detail' deck.id %}"
+        class="flex items-center bg-white text-indigo-700 py-3 px-6 rounded-lg hover:bg-indigo-50 transition-all duration-200 font-semibold shadow-lg transform hover:scale-105">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+        </svg>
+        Back to Deck
+      </a>
+    </div>
+  </div>
+
+  {% if flashcards %}
+  <!-- Flashcard Section -->
+  <div class="flex flex-col items-center">
+    <div id="flashcard"
+      class="w-full max-w-2xl bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 p-10 cursor-pointer relative transform hover:scale-102 mb-8">
+      <div class="card-inner" style="position: relative; width: 100%; height: 100%; transform-style: preserve-3d; transition: transform 0.3s;">
+        <div class="card-front absolute inset-0 flex items-center justify-center p-8 bg-white rounded-xl text-2xl font-semibold text-gray-800" style="backface-visibility: hidden;"></div>
+        <div class="card-back absolute inset-0 flex items-center justify-center p-8 bg-white rounded-xl text-2xl font-semibold text-gray-800" style="backface-visibility: hidden; transform: rotateY(180deg);"></div>
+      </div>
+    </div>
+
+    <!-- Progress Bar -->
+    <div class="w-full max-w-2xl bg-gray-100 h-2 rounded-full mb-8">
+      <div id="progress-bar" class="bg-green-500 h-2 rounded-full" style="width: 0%"></div>
+    </div>
+
+    <!-- Controls -->
+    <div class="flex flex-wrap justify-center gap-4 mb-10">
+      <button onclick="prevCard()"
+        class="bg-gray-100 text-gray-700 py-3 px-6 rounded-lg hover:bg-gray-200 transition-colors duration-200 font-medium flex items-center">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+        </svg>
+        Previous
+      </button>
+      <button onclick="nextCard()"
+        class="bg-indigo-600 text-white py-3 px-6 rounded-lg hover:bg-indigo-700 transition-colors duration-200 font-medium shadow-md flex items-center">
+        Next
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+        </svg>
+      </button>
+      <button onclick="toggleModal()"
+        class="bg-green-600 text-white py-3 px-6 rounded-lg hover:bg-green-700 transition-colors duration-200 font-medium shadow-md flex items-center">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+        </svg>
+        Add Flashcard
+      </button>
+    </div>
+
+    <!-- Card Counter -->
+    <div class="text-gray-500 text-sm font-medium mb-10">
+      Card <span id="current-card-number">1</span> of <span id="total-cards">{{ flashcards|length }}</span>
+    </div>
+  </div>
+
+  <!-- Create Flashcard Modal -->
+  <div id="flashcard-modal"
+    class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center hidden z-50 transition-opacity duration-300">
+    <div class="bg-white p-8 rounded-xl shadow-xl w-full max-w-lg">
+      <h3 class="text-2xl font-semibold text-gray-800 mb-6">Add New Flashcard</h3>
+      <div class="mb-6">
+        <label for="card-front-input" class="block text-gray-700 font-medium mb-2">Front</label>
+        <input type="text" id="card-front-input" placeholder="Enter the question or term"
+          class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
+      </div>
+      <div class="mb-6">
+        <label for="card-back-input" class="block text-gray-700 font-medium mb-2">Back</label>
+        <input type="text" id="card-back-input" placeholder="Enter the answer or definition"
+          class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
+      </div>
+      <div class="flex space-x-4">
+        <button onclick="addFlashcard()"
+          class="flex-1 bg-indigo-600 text-white py-3 px-6 rounded-lg hover:bg-indigo-700 transition-colors duration-200 font-medium shadow-md">
+          Add Card
+        </button>
+        <button onclick="closeModal()"
+          class="flex-1 bg-gray-100 text-gray-700 py-3 px-6 rounded-lg hover:bg-gray-200 transition-colors duration-200 font-medium">
+          Cancel
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Embed flashcards as JSON -->
+  <script id="flashcard-data" type="application/json">
+    [
+      {% for card in flashcards %}
+        { "front": "{{ card.front|escapejs }}", "back": "{{ card.back|escapejs }}" }{% if not forloop.last %},{% endif %}
+      {% endfor %}
+    ]
+  </script>
+
+  <script>
+    const flashcards = JSON.parse(document.getElementById('flashcard-data').textContent);
+    let currentCard = 0;
+    let isFront = true;
+    const flashcard = document.querySelector('#flashcard .card-inner');
+    const cardFront = document.querySelector('.card-front');
+    const cardBack = document.querySelector('.card-back');
+    const progressBar = document.getElementById('progress-bar');
+    const currentCardNumber = document.getElementById('current-card-number');
+    const totalCards = document.getElementById('total-cards');
+
+    document.getElementById('flashcard-modal').addEventListener('click', function(event) {
+      if (event.target === this) {
+        closeModal();
+      }
+    });
+
+    function updateProgressBar() {
+      if (flashcards.length === 0) return;
+      const progress = ((currentCard + 1) / flashcards.length) * 100;
+      progressBar.style.width = `${progress}%`;
+      currentCardNumber.textContent = currentCard + 1;
+      totalCards.textContent = flashcards.length;
+    }
+
+    function showCard() {
+      if (flashcards.length === 0) return;
+      cardFront.textContent = flashcards[currentCard].front || "No front content";
+      cardBack.textContent = flashcards[currentCard].back || "No back content";
+      console.log("Showing card:", flashcards[currentCard]); // Debug
+      flashcard.style.transform = 'rotateY(0deg)';
+      isFront = true;
+      updateProgressBar();
+    }
+
+    function flipCard() {
+      if (flashcards.length === 0) return;
+      flashcard.style.transform = isFront ? 'rotateY(180deg)' : 'rotateY(0deg)';
+      isFront = !isFront;
+      console.log(isFront ? "Showing front:" : "Showing back:", isFront ? cardFront.textContent : cardBack.textContent); // Debug
+    }
+
+    function nextCard() {
+      if (flashcards.length === 0) return;
+      currentCard = (currentCard + 1) % flashcards.length;
+      showCard();
+    }
+
+    function prevCard() {
+      if (flashcards.length === 0) return;
+      currentCard = (currentCard - 1 + flashcards.length) % flashcards.length;
+      showCard();
+    }
+
+    function toggleModal() {
+      const modal = document.getElementById('flashcard-modal');
+      modal.classList.toggle('hidden');
+      if (!modal.classList.contains('hidden')) {
+        document.getElementById('card-front-input').focus();
+      }
+    }
+
+    function closeModal() {
+      const modal = document.getElementById('flashcard-modal');
+      modal.classList.add('hidden');
+      document.getElementById('card-front-input').value = '';
+      document.getElementById('card-back-input').value = '';
+    }
+
+    async function addFlashcard() {
+      const front = document.getElementById('card-front-input').value;
+      const back = document.getElementById('card-back-input').value;
+      
+      if (!front || !back) {
+        showMessage('Please fill in both fields!', 'error');
+        return;
+      }
+      
+      try {
+        flashcards.push({ front, back });
+        currentCard = flashcards.length - 1;
+        showCard();
+        closeModal();
+        showMessage('Flashcard added successfully!');
+      } catch (error) {
+        showMessage('Failed to add flashcard.', 'error');
+        console.error(error);
+      }
+    }
+
+    function showMessage(message, type = 'success') {
+      let toastContainer = document.getElementById('toast-container');
+      if (!toastContainer) {
+        toastContainer = document.createElement('div');
+        toastContainer.id = 'toast-container';
+        toastContainer.className = 'fixed bottom-0 right-0 p-4 z-50';
+        document.body.appendChild(toastContainer);
+      }
+      
+      const toast = document.createElement('div');
+      toast.className = `mb-3 p-4 rounded-lg shadow-lg transition-all duration-500 transform translate-x-0 flex items-center ${
+        type === 'success' ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
+      }`;
+      
+      const icon = document.createElement('div');
+      icon.className = 'mr-2';
+      icon.innerHTML = type === 'success' 
+        ? '<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>'
+        : '<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>';
+      
+      const text = document.createElement('span');
+      text.textContent = message;
+      
+      toast.appendChild(icon);
+      toast.appendChild(text);
+      toastContainer.appendChild(toast);
+      
+      setTimeout(() => {
+        toast.classList.add('translate-x-0');
+      }, 10);
+      
+      setTimeout(() => {
+        toast.classList.add('opacity-0', 'translate-x-full');
+        setTimeout(() => {
+          toast.remove();
+        }, 300);
+      }, 3000);
+    }
+
+    document.addEventListener('keydown', function(event) {
+      if (event.key === 'ArrowRight') {
+        nextCard();
+      } else if (event.key === 'ArrowLeft') {
+        prevCard();
+      } else if (event.key === ' ' || event.key === 'Spacebar') {
+        flipCard();
+      }
+    });
+
+    document.getElementById('card-back-input').addEventListener('keypress', function(event) {
+      if (event.key === 'Enter') {
+        addFlashcard();
+      }
+    });
+
+    // Initialize
+    showCard();
+
+    // Add click event to flashcard
+    document.getElementById('flashcard').addEventListener('click', flipCard);
+  </script>
+  {% else %}
+  <!-- Empty State -->
+  <div
+    class="bg-white rounded-xl border border-dashed border-gray-300 p-10 text-center">
+    <div
+      class="mx-auto w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center mb-4">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+      </svg>
+    </div>
+    <h3 class="text-xl font-semibold text-gray-800 mb-2">No flashcards yet!</h3>
+    <p class="text-gray-600 mb-6">Add some flashcards to start studying</p>
+    <button onclick="toggleModal()"
+      class="inline-flex items-center bg-indigo-600 text-white py-2.5 px-6 rounded-lg hover:bg-indigo-700 transition-colors duration-200 font-medium shadow-md">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+      </svg>
+      Create Your First Flashcard
+    </button>
+  </div>
+  {% endif %}
+
+  <style>
+    #flashcard {
+      height: 300px;
+      perspective: 1200px;
+    }
+
+    .card-inner {
+      transform-style: preserve-3d;
+      transition: transform 0.3s;
+    }
+
+    .card-front, .card-back {
+      backface-visibility: hidden;
+      box-sizing: border-box;
+    }
+
+    .card-back {
+      transform: rotateY(180deg);
+    }
+  </style>
+</section>
+{% endblock %}

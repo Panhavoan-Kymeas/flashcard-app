@@ -1,0 +1,431 @@
+{% extends 'flashcards/base.html' %}
+
+{% block title %}Flashcard App - Dashboard{% endblock %}
+
+{% block content %}
+<section class="max-w-6xl mx-auto">
+  <!-- Hero Section -->
+  <div
+    class="bg-gradient-to-br from-indigo-600 to-purple-700 rounded-2xl p-8 mb-10 shadow-xl">
+    <div class="flex flex-col md:flex-row justify-between items-center">
+      <div class="text-white mb-6 md:mb-0">
+        <h2 class="text-3xl md:text-4xl font-bold mb-2">Your Flashcard
+          Dashboard</h2>
+        <p class="text-indigo-100 max-w-md">Create custom decks and boost your
+          learning with spaced repetition.</p>
+      </div>
+      <button id="create-deck-button"
+        class="flex items-center bg-white text-indigo-700 py-3 px-6 rounded-lg hover:bg-indigo-50 transition-all duration-200 font-semibold shadow-lg transform hover:scale-105">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none"
+          viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+        </svg>
+        Create New Deck
+      </button>
+    </div>
+  </div>
+
+  <!-- Create Deck Modal -->
+  <div id="create-deck-modal"
+    class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center hidden z-50 transition-opacity duration-300">
+    <div class="bg-white p-8 rounded-xl shadow-xl w-full max-w-lg">
+      <h3 class="text-2xl font-semibold text-gray-800 mb-6">Create New Deck</h3>
+      <div class="mb-6">
+        <label for="deck-name" class="block text-gray-700 font-medium mb-2">Deck
+          Name</label>
+        <input type="text" id="deck-name" placeholder="e.g., Spanish Vocabulary"
+          class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
+      </div>
+      <div class="flex space-x-4">
+        <button onclick="createDeck()"
+          class="flex-1 bg-indigo-600 text-white py-3 px-6 rounded-lg hover:bg-indigo-700 transition-colors duration-200 font-medium shadow-md">
+          Create Deck
+        </button>
+        <button onclick="hideCreateDeckForm()"
+          class="flex-1 bg-gray-100 text-gray-700 py-3 px-6 rounded-lg hover:bg-gray-200 transition-colors duration-200 font-medium">
+          Cancel
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stats Summary -->
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+    <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-indigo-500">
+      <div class="flex items-center">
+        <div class="bg-indigo-100 p-3 rounded-lg mr-4">
+          <svg xmlns="http://www.w3.org/2000/svg"
+            class="h-6 w-6 text-indigo-600" fill="none" viewBox="0 0 24 24"
+            stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round"
+              stroke-width="2"
+              d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+          </svg>
+        </div>
+        <div>
+          <p class="text-gray-500 text-sm font-medium">Total Decks</p>
+          <h4 class="text-2xl font-bold text-gray-800">{{ decks|length }}</h4>
+        </div>
+      </div>
+    </div>
+    <!-- <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-purple-500">
+      <div class="flex items-center">
+        <div class="bg-purple-100 p-3 rounded-lg mr-4">
+          <svg xmlns="http://www.w3.org/2000/svg"
+            class="h-6 w-6 text-purple-600" fill="none" viewBox="0 0 24 24"
+            stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round"
+              stroke-width="2"
+              d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+          </svg>
+        </div>
+        <div>
+          <p class="text-gray-500 text-sm font-medium">Total Cards</p>
+          <h4 class="text-2xl font-bold text-gray-800">{{ total_cards }}</h4>
+        </div>
+      </div>
+    </div> -->
+    <!-- <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-green-500">
+      <div class="flex items-center">
+        <div class="bg-green-100 p-3 rounded-lg mr-4">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-green-600"
+            fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round"
+              stroke-width="2"
+              d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        </div>
+        <div>
+          <p class="text-gray-500 text-sm font-medium">Mastered Cards</p>
+          <h4 class="text-2xl font-bold text-gray-800">{{
+            mastered_cards|default:"0" }}</h4>
+        </div>
+      </div>
+    </div> -->
+  </div>
+
+  <!-- Decks Section -->
+  <h3 class="text-2xl font-semibold text-gray-800 mb-6">Your Flashcard
+    Decks</h3>
+
+  <div id="decks-list"
+    class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    {% for deck in decks %}
+    <div
+      class="bg-white rounded-xl shadow-md hover:shadow-lg transition-all duration-300 overflow-hidden fade-in"
+      data-deck-id="{{ deck.id }}">
+      <div class="p-6">
+        <div class="flex justify-between items-start mb-4">
+          <h3 class="text-xl font-semibold text-gray-800">{{ deck.name }}</h3>
+          <div class="dropdown relative">
+            <button class="text-gray-500 hover:text-gray-700 focus:outline-none"
+              id="dropdown-{{ deck.id }}">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5"
+                viewBox="0 0 20 20" fill="currentColor">
+                <path
+                  d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
+              </svg>
+            </button>
+            <div
+              class="dropdown-menu hidden absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg z-10 p-2"
+              id="dropdown-menu-{{ deck.id }}">
+              <a href="{% url 'deck_detail' deck.id %}"
+                class="block px-4 py-2 text-gray-700 hover:bg-indigo-50 rounded-md">
+                Edit Deck
+              </a>
+              <button onclick=`deleteDeck({{ deck.id }})`
+                class="block w-full text-left px-4 py-2 text-red-600 hover:bg-red-50 rounded-md">
+                Delete Deck
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex items-center mb-6">
+          <div class="bg-indigo-100 p-2 rounded-full">
+            <svg xmlns="http://www.w3.org/2000/svg"
+              class="h-5 w-5 text-indigo-600" fill="none" viewBox="0 0 24 24"
+              stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round"
+                stroke-width="2"
+                d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+            </svg>
+          </div>
+          <p class="text-gray-500 ml-2">{{ deck.flashcards.count }}
+            flashcards</p>
+
+          {% if deck.last_studied %}
+          <div class="ml-4 bg-gray-100 p-2 rounded-full">
+            <svg xmlns="http://www.w3.org/2000/svg"
+              class="h-5 w-5 text-gray-600" fill="none" viewBox="0 0 24 24"
+              stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round"
+                stroke-width="2"
+                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <p class="text-gray-500 ml-2">Last studied: {{
+            deck.last_studied|date:"M d" }}</p>
+          {% endif %}
+        </div>
+
+        <div class="flex space-x-3">
+          <a href="{% url 'study_mode' deck.id %}"
+            class="flex-1 bg-indigo-600 text-white py-2.5 px-4 rounded-lg hover:bg-indigo-700 transition-colors duration-200 font-medium text-center">
+            Study Now
+          </a>
+          <a href="{% url 'deck_detail' deck.id %}"
+            class="flex-1 bg-gray-100 text-gray-700 py-2.5 px-4 rounded-lg hover:bg-gray-200 transition-colors duration-200 font-medium text-center">
+            Manage
+          </a>
+        </div>
+      </div>
+
+      {% if deck.progress %}
+      <div class="w-full bg-gray-100 h-2">
+        <div class="bg-green-500 h-2" style=`width: {{ deck.progress }}%`></div>
+      </div>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+
+  {% if not decks %}
+  <div
+    class="bg-white rounded-xl border border-dashed border-gray-300 p-10 text-center">
+    <div
+      class="mx-auto w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center mb-4">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-indigo-600"
+        fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+          d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+      </svg>
+    </div>
+    <h3 class="text-xl font-semibold text-gray-800 mb-2">No decks yet!</h3>
+    <p class="text-gray-600 mb-6">Create your first flashcard deck to start
+      studying</p>
+    <button onclick="showCreateDeckForm()"
+      class="inline-flex items-center bg-indigo-600 text-white py-2.5 px-6 rounded-lg hover:bg-indigo-700 transition-colors duration-200 font-medium shadow-md">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none"
+        viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+          d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+      </svg>
+      Create Your First Deck
+    </button>
+  </div>
+  {% endif %}
+</section>
+
+<script>
+  const deckDetailUrlPattern = "{% url 'deck_detail' 0 %}";
+  const studyModeUrlPattern = "{% url 'study_mode' 0 %}";
+
+  document.getElementById('create-deck-modal').addEventListener('click', function(event) {
+  if (event.target === this) {
+    hideCreateDeckForm();
+    }
+  });
+
+  // Show/hide create deck form
+  document.getElementById('create-deck-button').addEventListener('click', showCreateDeckForm);
+
+  function showCreateDeckForm() {
+    document.getElementById('create-deck-modal').classList.remove('hidden');
+    document.getElementById('deck-name').focus();
+  }
+
+  function hideCreateDeckForm() {
+    document.getElementById('create-deck-modal').classList.add('hidden');
+    document.getElementById('deck-name').value = '';
+  }
+
+  // Create a new deck
+  async function createDeck() {
+    const name = document.getElementById('deck-name').value;
+    if (!name) {
+      showMessage('Please enter a deck name', 'error');
+      return;
+    }
+    
+    const formData = new FormData();
+    formData.append('name', name);
+    
+    try {
+      const response = await fetch("{% url 'api_create_deck' %}", {
+        method: 'POST',
+        body: formData,
+        headers: { 'X-CSRFToken': '{{ csrf_token }}' }
+      });
+      
+      const data = await response.json();
+      
+      if (response.ok) {
+        // Check if "no decks" message exists and remove it
+        const noDecksMessage = document.querySelector('.border-dashed');
+        if (noDecksMessage) {
+          noDecksMessage.remove();
+        }
+        
+        const decksList = document.getElementById('decks-list');
+        const deckDetailUrl = deckDetailUrlPattern.replace('/0/', `/${data.id}/`);
+        const studyModeUrl = studyModeUrlPattern.replace('/0/', `/${data.id}/`);
+        
+        const newDeckHTML = `
+          <div class="bg-white rounded-xl shadow-md hover:shadow-lg transition-all duration-300 overflow-hidden fade-in" data-deck-id="${data.id}">
+            <div class="p-6">
+              <div class="flex justify-between items-start mb-4">
+                <h3 class="text-xl font-semibold text-gray-800">${data.name}</h3>
+                <div class="dropdown relative">
+                  <button class="text-gray-500 hover:text-gray-700 focus:outline-none" id="dropdown-${data.id}">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                      <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
+                    </svg>
+                  </button>
+                  <div class="dropdown-menu hidden absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg z-10 p-2" id="dropdown-menu-${data.id}">
+                    <a href="${deckDetailUrl}" class="block px-4 py-2 text-gray-700 hover:bg-indigo-50 rounded-md">
+                      Edit Deck
+                    </a>
+                    <button onclick="deleteDeck(${data.id})" class="block w-full text-left px-4 py-2 text-red-600 hover:bg-red-50 rounded-md">
+                      Delete Deck
+                    </button>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="flex items-center mb-6">
+                <div class="bg-indigo-100 p-2 rounded-full">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                  </svg>
+                </div>
+                <p class="text-gray-500 ml-2">0 flashcards</p>
+              </div>
+
+              <div class="flex space-x-3">
+                <a href="${studyModeUrl}" 
+                  class="flex-1 bg-indigo-600 text-white py-2.5 px-4 rounded-lg hover:bg-indigo-700 transition-colors duration-200 font-medium text-center">
+                  Study Now
+                </a>
+                <a href="${deckDetailUrl}" 
+                  class="flex-1 bg-gray-100 text-gray-700 py-2.5 px-4 rounded-lg hover:bg-gray-200 transition-colors duration-200 font-medium text-center">
+                  Manage
+                </a>
+              </div>
+            </div>
+          </div>`;
+        
+        decksList.insertAdjacentHTML('afterbegin', newDeckHTML);
+        
+        // Update dropdown toggle for the new deck
+        setupDropdownToggle(data.id);
+        
+        // Update stats counter
+        updateStatsCounter('decks');
+        
+        hideCreateDeckForm();
+        showMessage('Deck created successfully');
+      } else {
+        showMessage(data.error || 'Failed to create deck', 'error');
+      }
+    } catch (error) {
+      showMessage('An error occurred while creating the deck', 'error');
+      console.error(error);
+    }
+  }
+
+  // Delete a deck
+  async function deleteDeck(deckId) {
+    if (!confirm('Are you sure you want to delete this deck? This action cannot be undone.')) return;
+    
+    try {
+      const response = await fetch(`/api/decks/${deckId}/delete/`, {
+        method: 'POST',
+        headers: { 'X-CSRFToken': '{{ csrf_token }}' }
+      });
+      
+      const data = await response.json();
+      
+      if (response.ok) {
+        const deckElement = document.querySelector(`[data-deck-id="${deckId}"]`);
+        deckElement.classList.add('fade-out');
+        
+        setTimeout(() => {
+          deckElement.remove();
+          
+          // Update stats counter
+          updateStatsCounter('decks', -1);
+          
+          // Show "no decks" message if needed
+          const decksList = document.getElementById('decks-list');
+          if (decksList.children.length === 0) {
+            location.reload(); // Reload to show the "no decks" message
+          }
+        }, 300);
+        
+        showMessage(data.message || 'Deck deleted successfully');
+      } else {
+        showMessage(data.error || 'Failed to delete deck', 'error');
+      }
+    } catch (error) {
+      showMessage('An error occurred while deleting the deck', 'error');
+      console.error(error);
+    }
+  }
+
+  // Setup dropdown toggles for all decks
+  document.addEventListener('DOMContentLoaded', function() {
+    // Setup dropdowns for all existing decks
+    {% for deck in decks %}
+      setupDropdownToggle({{ deck.id }});
+    {% endfor %}
+    
+    // Close dropdowns when clicking outside
+    document.addEventListener('click', function(event) {
+      const dropdowns = document.querySelectorAll('.dropdown-menu:not(.hidden)');
+      dropdowns.forEach(dropdown => {
+        if (!dropdown.parentElement.contains(event.target)) {
+          dropdown.classList.add('hidden');
+        }
+      });
+    });
+  });
+
+  function setupDropdownToggle(deckId) {
+    const dropdownButton = document.getElementById(`dropdown-${deckId}`);
+    if (dropdownButton) {
+      dropdownButton.addEventListener('click', function(event) {
+        event.stopPropagation();
+        const dropdownMenu = document.getElementById(`dropdown-menu-${deckId}`);
+        dropdownMenu.classList.toggle('hidden');
+        
+        // Hide all other dropdowns
+        document.querySelectorAll('.dropdown-menu').forEach(menu => {
+          if (menu.id !== `dropdown-menu-${deckId}`) {
+            menu.classList.add('hidden');
+          }
+        });
+      });
+    }
+  }
+
+  // Update stats counter
+  function updateStatsCounter(type, change = 1) {
+    if (type === 'decks') {
+      const counterElement = document.querySelector('.border-indigo-500 .text-2xl');
+      if (counterElement) {
+        const currentCount = parseInt(counterElement.textContent);
+        counterElement.textContent = currentCount + change;
+      }
+    }
+  }
+
+  // Handle Enter key in the deck name input
+  document.getElementById('deck-name').addEventListener('keypress', function(event) {
+    if (event.key === 'Enter') {
+      createDeck();
+    }
+  });
+</script>
+{% endblock %}
